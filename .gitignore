@@ -1,0 +1,27 @@
+# IDE / редактор
+.vscode/
+.idea/
+
+# Віртуальне оточення
+venv/
+
+# Python bytecode / кеш
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Локальна база даних і логи
+db.sqlite3
+*.log
+
+# Файли середовища
+.env
+
+# Статичні/медіа (якщо збираєте collectstatic або заливаєте uploads)
+staticfiles/
+media/
+
+# Кеш pytest та покриття тестами
+.pytest_cache/
+.coverage
+htmlcov/
