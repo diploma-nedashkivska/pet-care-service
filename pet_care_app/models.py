@@ -1,5 +1,7 @@
+import bcrypt
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 SEX_CHOICES = (
     ('MALE', 'Чоловіча'),
@@ -25,6 +27,13 @@ class User(models.Model):
     photo_url = models.URLField(max_length=255, blank=True, null=True)
     # photo_url     = models.CharField(max_length=255, blank=True, null=True)
     hash_password = models.TextField()
+
+    def set_password(self, raw_password):
+        salt = bcrypt.gensalt()
+        self.hash_password = bcrypt.hashpw(raw_password.encode(), salt).decode()
+
+    def check_password(self, raw_password):
+        return bcrypt.checkpw(raw_password.encode(), self.hash_password.encode())
 
     def __str__(self):
         return self.full_name
