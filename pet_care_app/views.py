@@ -1,21 +1,10 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from .models import User
-from django.contrib.auth.hashers import check_password
-from rest_framework.response import Response
 from .serializers import *
-from rest_framework import viewsets
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
-
-
-class UserView(viewsets.ModelViewSet):
-    serializer_class = UserSerializer
-    queryset = User.objects.all()
 
 
 class MyRefreshToken(RefreshToken):
@@ -29,7 +18,7 @@ class MyRefreshToken(RefreshToken):
         return token
 
 
-class LoginView(APIView):
+class SignInView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -61,4 +50,27 @@ class LoginView(APIView):
                 }
             },
             status=status.HTTP_200_OK
+        )
+
+
+class SignUpView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = SignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.save()
+
+        refresh = MyRefreshToken.for_user(user)
+        access = refresh.access_token
+
+        return JsonResponse(
+            {
+                "payloadType": "RegistrationResponseDto",
+                "payload": {
+                    "accessToken": str(access),
+                }
+            },
+            status=status.HTTP_201_CREATED
         )
