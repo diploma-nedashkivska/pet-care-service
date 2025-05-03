@@ -28,7 +28,6 @@ urlpatterns = [
     # path('api/', include(router.urls)),
     path('signin/', SignInView.as_view(), name="signin"),
     path('signup/', SignUpView.as_view(), name="signup"),
-
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
 
 ]

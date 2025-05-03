@@ -5,6 +5,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
 
 
 class MyRefreshToken(RefreshToken):
@@ -55,11 +57,11 @@ class SignInView(APIView):
 
 class SignUpView(APIView):
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = serializer.save()
 
         refresh = MyRefreshToken.for_user(user)
