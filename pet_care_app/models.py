@@ -1,7 +1,7 @@
 import bcrypt
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import PermissionsMixin
 
 SEX_CHOICES = (
     ('MALE', 'Чоловіча'),
@@ -24,8 +24,8 @@ class SitePartner(models.Model):
 class User(models.Model):
     full_name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
-    photo_url = models.URLField(max_length=255, blank=True, null=True)
-    # photo_url     = models.CharField(max_length=255, blank=True, null=True)
+    # photo_url = models.URLField(max_length=255, blank=True, null=True)
+    photo_url     = models.CharField(max_length=255, blank=True, null=True)
     hash_password = models.TextField()
 
     def set_password(self, raw_password):
