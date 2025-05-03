@@ -1,7 +1,6 @@
-import bcrypt
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
 SEX_CHOICES = (
     ('MALE', 'Чоловіча'),
@@ -11,31 +10,55 @@ SEX_CHOICES = (
 
 class SitePartner(models.Model):
     site_url = models.URLField(max_length=255)
-    # site_url  = models.CharField(max_length=255)
     site_name = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
     photo_url = models.URLField(max_length=255, blank=True, null=True)
 
-    # photo_url = models.CharField(max_length=255, blank=True, null=True)
     def __str__(self):
         return self.site_name
 
 
-class User(models.Model):
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, full_name=None, **extra_fields):
+        if not email:
+            raise ValueError("Електронна пошта обов'язкова")
+        email = self.normalize_email(email)
+        user = self.model(email=email, full_name=full_name, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password, full_name=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        return self.create_user(
+            email,
+            password,
+            full_name=None,
+            **extra_fields
+        )
+
+
+class User(AbstractBaseUser, PermissionsMixin):
     full_name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
     photo_url = models.URLField(max_length=255, blank=True, null=True)
-    hash_password = models.TextField()
+    # password = models.TextField()
 
-    def set_password(self, raw_password):
-        salt = bcrypt.gensalt()
-        self.hash_password = bcrypt.hashpw(raw_password.encode(), salt).decode()
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
-    def check_password(self, raw_password):
-        return bcrypt.checkpw(raw_password.encode(), self.hash_password.encode())
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['full_name']
+
+    objects = CustomUserManager()
 
     def __str__(self):
-        return self.full_name
+        return self.full_name or self.email
+
+    class Meta:
+        db_table = 'user'
 
 
 class Pet(models.Model):
@@ -46,7 +69,6 @@ class Pet(models.Model):
     birthday = models.DateField()
     photo_url = models.URLField(max_length=255, blank=True, null=True)
 
-    # photo_url = models.CharField(max_length=255, blank=True, null=True)
     def __str__(self):
         return f'{self.pet_name} ({self.breed})'
 
@@ -76,7 +98,6 @@ class ForumPost(models.Model):
     user = models.ForeignKey(User, related_name='forum_posts', on_delete=models.CASCADE)
     post_text = models.TextField()
     photo_url = models.URLField(max_length=255, blank=True, null=True)
-    # photo_url = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
