@@ -1,12 +1,15 @@
-from rest_framework.views import APIView
-from .models import User
-from .serializers import *
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
+from django.contrib.auth.hashers import check_password
+from .serializers import *
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import AllowAny
+from rest_framework.authentication import get_authorization_header
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
+
 
 
 class MyRefreshToken(RefreshToken):
@@ -35,7 +38,7 @@ class SignInView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        if not bcrypt.checkpw(password.encode(), user.hash_password.encode()):
+        if not check_password(password, user.password):
             return JsonResponse(
                 {"error": "Неправильний email або пароль"},
                 status=status.HTTP_401_UNAUTHORIZED
@@ -75,4 +78,19 @@ class SignUpView(APIView):
                 }
             },
             status=status.HTTP_201_CREATED
+        )
+
+
+class ProfileView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return JsonResponse(
+            {
+                "payloadType": "UserInfoDto",
+                "payload": serializer.data
+            },
+            status=status.HTTP_200_OK
         )

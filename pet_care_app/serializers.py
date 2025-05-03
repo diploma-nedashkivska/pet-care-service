@@ -9,13 +9,14 @@ from .models import *
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'hash_password']
+        fields = ['full_name', 'email', 'photo_url', 'password']
 
 
 class SignUpSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=255)
     email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())])
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
     password = serializers.CharField(write_only=True)
     photo = serializers.ImageField(required=False)
 
@@ -26,6 +27,7 @@ class SignUpSerializer(serializers.Serializer):
             email=validated_data["email"]
         )
         user.set_password(validated_data["password"])
+        user.save()
 
         if photo:
             s3 = boto3.client(
@@ -34,7 +36,8 @@ class SignUpSerializer(serializers.Serializer):
                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                 region_name=settings.AWS_S3_REGION_NAME
             )
-            key = f"user_profile/{uuid.uuid4().hex}.jpg"
+            # key = f"user_profile/{uuid.uuid4().hex}.jpg"
+            key = f"user_profile/image_{user.id}.jpg"
             s3.upload_fileobj(
                 photo.file,
                 settings.AWS_STORAGE_BUCKET_NAME,
@@ -44,5 +47,5 @@ class SignUpSerializer(serializers.Serializer):
                 f"https://{settings.AWS_STORAGE_BUCKET_NAME}"
                 f".s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{key}"
             )
-        user.save()
+            user.save()
         return user

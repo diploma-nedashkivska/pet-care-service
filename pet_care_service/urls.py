@@ -19,7 +19,7 @@ from django.urls import path, include
 from pet_care_app import views
 from rest_framework import routers
 from rest_framework_simplejwt import views as jwt_views
-from pet_care_app.views import SignInView, SignUpView
+from pet_care_app.views import SignInView, SignUpView, ProfileView
 
 # router = routers.DefaultRouter()
 # router.register(r'users', views.UserView, 'user')
@@ -28,6 +28,7 @@ urlpatterns = [
     # path('api/', include(router.urls)),
     path('signin/', SignInView.as_view(), name="signin"),
     path('signup/', SignUpView.as_view(), name="signup"),
+    path('profile/', ProfileView.as_view(), name='profile'),
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
 
 ]
