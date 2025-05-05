@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.authentication import get_authorization_header
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.generics import RetrieveUpdateAPIView
 
 
 class MyRefreshToken(RefreshToken):
@@ -81,7 +81,7 @@ class SignUpView(APIView):
         )
 
 
-class ProfileView(APIView):
+class PetProfileView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -94,3 +94,18 @@ class ProfileView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+
+class UserProfileView(RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def perform_update(self, serializer):
+        user = serializer.save()
+        pwd = self.request.data.get('password')
+        if pwd:
+            user.set_password(pwd)
+            user.save()

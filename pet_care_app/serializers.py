@@ -7,6 +7,13 @@ from .models import *
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+        style={'input_type': 'password'}
+    )
+
     class Meta:
         model = User
         fields = ['full_name', 'email', 'photo_url', 'password']
@@ -37,7 +44,7 @@ class SignUpSerializer(serializers.Serializer):
                 region_name=settings.AWS_S3_REGION_NAME
             )
             # key = f"user_profile/{uuid.uuid4().hex}.jpg"
-            key = f"user_profile/image_{user.id}.jpg"
+            key = f"user_profile/image_{user.id}_{uuid.uuid4().hex}.jpg"
             s3.upload_fileobj(
                 photo.file,
                 settings.AWS_STORAGE_BUCKET_NAME,
