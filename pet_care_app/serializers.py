@@ -57,6 +57,7 @@ class SignUpSerializer(serializers.Serializer):
             user.save()
         return user
 
+
 class PetSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     photo = serializers.ImageField(required=False, write_only=True)
@@ -92,3 +93,9 @@ class PetSerializer(serializers.ModelSerializer):
             instance.photo_url = self._upload_to_s3(photo.file, f"pet_photos/pet_{instance.id}")
             instance.save()
         return instance
+
+
+class CalendarEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CalendarEvent
+        fields = ['id', 'pet', 'event_title', 'start_date', 'start_time', 'description', 'completed']

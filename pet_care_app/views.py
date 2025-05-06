@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveUpdateAPIView
 from django.shortcuts import get_object_or_404
 
+
 class MyRefreshToken(RefreshToken):
     @classmethod
     def for_user(cls, user):
@@ -82,8 +83,6 @@ class SignUpView(APIView):
         )
 
 
-
-
 class UserProfileView(RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
@@ -100,10 +99,6 @@ class UserProfileView(RetrieveUpdateAPIView):
 
 
 class PetListCreateView(APIView):
-    """
-    GET  /pets/   — список усіх своїх тварин у payload: [...]
-    POST /pets/   — передати форму, створити, повернути в payload: {…}
-    """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]  # ← сюди
@@ -127,16 +122,9 @@ class PetListCreateView(APIView):
 
 
 class PetDetailView(APIView):
-    """
-    PUT    /pets/{pk}/   — повне оновлення
-    PATCH  /pets/{pk}/   — часткове оновлення
-    DELETE /pets/{pk}/   — видалення
-    (теж повертають payload з об’єктом або 204 No Content)
-    """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]  # ← сюди
-
 
     def put(self, request, pk):
         pet = get_object_or_404(Pet, pk=pk, user=request.user)
@@ -162,3 +150,54 @@ class PetDetailView(APIView):
         pet = get_object_or_404(Pet, pk=pk, user=request.user)
         pet.delete()
         return JsonResponse({}, status=status.HTTP_204_NO_CONTENT)
+
+
+class CalendarEventListCreateView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request):
+        year = int(request.query_params.get('year', timezone.now().year))
+        month = int(request.query_params.get('month', timezone.now().month))
+        pet_id = request.query_params.get('pet')
+        events = CalendarEvent.objects.filter(
+            pet__user=request.user,
+            start_date__year=year,
+            start_date__month=month,
+            **({'pet__id': pet_id} if pet_id else {})
+        )
+        serializer = CalendarEventSerializer(events, many=True)
+        return JsonResponse({'payloadType': 'CalendarListDto', 'payload': serializer.data})
+
+    def post(self, request):
+        serializer = CalendarEventSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pet = get_object_or_404(Pet, pk=request.data['pet'], user=request.user)
+        serializer.save(pet=pet)
+        return JsonResponse({'payloadType': 'CalendarDto', 'payload': serializer.data}, status=201)
+
+
+class CalendarEventDetailView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def put(self, request, pk):
+        event = get_object_or_404(CalendarEvent, pk=pk, pet__user=request.user)
+        serializer = CalendarEventSerializer(event, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return JsonResponse({'payloadType': 'CalendarDto', 'payload': serializer.data})
+
+    def patch(self, request, pk):
+        event = get_object_or_404(CalendarEvent, pk=pk, pet__user=request.user)
+        serializer = CalendarEventSerializer(event, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return JsonResponse({'payloadType': 'CalendarDto', 'payload': serializer.data})
+
+    def delete(self, request, pk):
+        event = get_object_or_404(CalendarEvent, pk=pk, pet__user=request.user)
+        event.delete()
+        return JsonResponse({}, status=204)
