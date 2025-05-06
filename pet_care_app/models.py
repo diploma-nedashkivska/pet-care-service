@@ -84,6 +84,7 @@ class CalendarEvent(models.Model):
     start_date = models.DateField(blank=True, null=True)
     start_time = models.TimeField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    completed = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.event_title} on {self.start_date}'
