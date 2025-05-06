@@ -22,6 +22,8 @@ class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, full_name=None, **extra_fields):
         if not email:
             raise ValueError("Електронна пошта обов'язкова")
+        if not full_name:
+            raise ValueError("Повне ім’я обов'язкове")
         email = self.normalize_email(email)
         user = self.model(email=email, full_name=full_name, **extra_fields)
         user.set_password(password)
@@ -32,10 +34,13 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
+        if not full_name:
+            raise ValueError("Суперкористувач повинен мати full_name")
+
         return self.create_user(
-            email,
-            password,
-            full_name=None,
+            email=email,
+            password=password,
+            full_name=full_name,
             **extra_fields
         )
 

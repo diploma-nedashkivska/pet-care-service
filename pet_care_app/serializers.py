@@ -56,3 +56,10 @@ class SignUpSerializer(serializers.Serializer):
             )
             user.save()
         return user
+
+class PetSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Pet
+        fields = ['id', 'pet_name', 'breed', 'sex', 'birthday', 'photo_url']
