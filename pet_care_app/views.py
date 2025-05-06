@@ -161,4 +161,4 @@ class PetDetailView(APIView):
     def delete(self, request, pk):
         pet = get_object_or_404(Pet, pk=pk, user=request.user)
         pet.delete()
-        return JsonResponse(status=status.HTTP_204_NO_CONTENT)
+        return JsonResponse({}, status=status.HTTP_204_NO_CONTENT)

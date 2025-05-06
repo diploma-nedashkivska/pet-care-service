@@ -59,7 +59,36 @@ class SignUpSerializer(serializers.Serializer):
 
 class PetSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
+    photo = serializers.ImageField(required=False, write_only=True)
 
     class Meta:
         model = Pet
-        fields = ['id', 'pet_name', 'breed', 'sex', 'birthday', 'photo_url']
+        fields = ['id', 'pet_name', 'breed', 'sex', 'birthday', 'photo_url', 'photo']
+        read_only_fields = ['id', 'photo_url']
+
+    def _upload_to_s3(self, file_obj, prefix: str):
+        client = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME
+        )
+        key = f"{prefix}/image_{uuid.uuid4().hex}"
+        client.upload_fileobj(file_obj, settings.AWS_STORAGE_BUCKET_NAME, key)
+        return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{key}"
+
+    def create(self, validated_data):
+        photo = validated_data.pop('photo', None)
+        pet = Pet.objects.create(**validated_data)
+        if photo:
+            pet.photo_url = self._upload_to_s3(photo.file, f"pet_photos/pet_{pet.id}")
+            pet.save()
+        return pet
+
+    def update(self, instance, validated_data):
+        photo = validated_data.pop('photo', None)
+        instance = super().update(instance, validated_data)
+        if photo:
+            instance.photo_url = self._upload_to_s3(photo.file, f"pet_photos/pet_{instance.id}")
+            instance.save()
+        return instance
