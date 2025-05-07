@@ -7,6 +7,16 @@ SEX_CHOICES = (
     ('FEMALE', 'Жіноча'),
 )
 
+TYPE_CHOICES = (
+    ('CHECKUP', 'Огляд у ветеринара'),
+    ('VACCINATION', 'Вакцинація'),
+    ('FLEA_CTRL', 'Обробка від бліх/кліщів'),
+    ('GROOMING', 'Грумінг'),
+    ('BATH', 'Купання'),
+    ('TRAINING', 'Тренування'),
+    ('OTHER', 'Інше'),
+)
+
 
 class SitePartner(models.Model):
     site_url = models.URLField(max_length=255)
@@ -86,8 +96,9 @@ class Pet(models.Model):
 
 class CalendarEvent(models.Model):
     pet = models.ForeignKey(Pet, related_name='calendar_events', on_delete=models.CASCADE)
+    event_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='OTHER')
     event_title = models.CharField(max_length=255)
-    start_date = models.DateField(blank=True, null=True)
+    start_date = models.DateField(default=timezone.now)
     start_time = models.TimeField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     completed = models.BooleanField(default=False)
@@ -101,6 +112,7 @@ class CalendarEvent(models.Model):
 
 class JournalEntry(models.Model):
     pet = models.ForeignKey(Pet, related_name='journal_entries', on_delete=models.CASCADE)
+    entry_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='OTHER')
     entry_title = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     description = models.TextField(blank=True, null=True)
@@ -130,7 +142,6 @@ class ForumComment(models.Model):
     user = models.ForeignKey(User, related_name='forum_comments', on_delete=models.CASCADE)
     comment_text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-
 
     def __str__(self):
         return f'Comment #{self.id} by {self.user.full_name}'
