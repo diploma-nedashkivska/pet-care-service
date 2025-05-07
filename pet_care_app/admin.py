@@ -4,3 +4,4 @@ from .models import *
 admin.site.register(User)
 admin.site.register(Pet)
 admin.site.register(CalendarEvent)
+admin.site.register(JournalEntry)

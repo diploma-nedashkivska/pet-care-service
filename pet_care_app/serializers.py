@@ -98,4 +98,14 @@ class PetSerializer(serializers.ModelSerializer):
 class CalendarEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = CalendarEvent
-        fields = ['id', 'pet', 'event_title', 'start_date', 'start_time', 'description', 'completed']
+        fields = ['id', 'pet', 'event_type', 'event_title', 'start_date', 'start_time', 'description', 'completed']
+
+
+class JournalEntrySerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = JournalEntry
+        fields = ['id', 'pet', 'entry_type', 'entry_title', 'created_at', 'description']
+        read_only_fields = ['id', 'created_at']

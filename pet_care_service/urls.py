@@ -20,7 +20,8 @@ from pet_care_app import views
 from rest_framework import routers
 from rest_framework_simplejwt import views as jwt_views
 from pet_care_app.views import (SignInView, SignUpView, PetListCreateView, PetDetailView,
-                                UserProfileView, CalendarEventListCreateView, CalendarEventDetailView, )
+                                UserProfileView, CalendarEventListCreateView, CalendarEventDetailView,
+                                JournalEntryListCreateView, JournalEntryDetailView)
 
 # router = routers.DefaultRouter()
 # router.register(r'users', views.UserView, 'user')
@@ -35,6 +36,9 @@ urlpatterns = [
     path('profile/', UserProfileView.as_view(), name='profile'),
     path('calendar/', CalendarEventListCreateView.as_view(), name='calendar-list'),
     path('calendar/<int:pk>/', CalendarEventDetailView.as_view(), name='calendar-detail'),
+    path('journal/', JournalEntryListCreateView.as_view(), name='journal-list'),
+    path('journal/<int:pk>/', JournalEntryDetailView.as_view(), name='journal-detail'),
+
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
 
 ]

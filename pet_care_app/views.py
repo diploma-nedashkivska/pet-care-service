@@ -201,3 +201,49 @@ class CalendarEventDetailView(APIView):
         event = get_object_or_404(CalendarEvent, pk=pk, pet__user=request.user)
         event.delete()
         return JsonResponse({}, status=204)
+
+
+class JournalEntryListCreateView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request):
+        entries = JournalEntry.objects.filter(pet__user=request.user).order_by('-created_at')
+        serializer = JournalEntrySerializer(entries, many=True)
+        return JsonResponse({'payloadType': 'JournalListDto', 'payload': serializer.data})
+
+    def post(self, request):
+        serializer = JournalEntrySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        pet = get_object_or_404(Pet, pk=request.data.get('pet'), user=request.user)
+        serializer.save(pet=pet)
+
+        return JsonResponse({'payloadType': 'JournalDto', 'payload': serializer.data},
+                            status=status.HTTP_201_CREATED)
+
+
+class JournalEntryDetailView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def put(self, request, pk):
+        entry = get_object_or_404(JournalEntry, pk=pk, pet__user=request.user)
+        serializer = JournalEntrySerializer(entry, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return JsonResponse({'payloadType': 'JournalDto', 'payload': serializer.data})
+
+    def patch(self, request, pk):
+        entry = get_object_or_404(JournalEntry, pk=pk, pet__user=request.user)
+        serializer = JournalEntrySerializer(entry, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return JsonResponse({'payloadType': 'JournalDto', 'payload': serializer.data})
+
+    def delete(self, request, pk):
+        entry = get_object_or_404(JournalEntry, pk=pk, pet__user=request.user)
+        entry.delete()
+        return JsonResponse({}, status=status.HTTP_204_NO_CONTENT)
