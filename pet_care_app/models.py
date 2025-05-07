@@ -17,6 +17,9 @@ class SitePartner(models.Model):
     def __str__(self):
         return self.site_name
 
+    class Meta:
+        db_table = 'SitePartner'
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, full_name=None, **extra_fields):
@@ -63,7 +66,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.full_name or self.email
 
     class Meta:
-        db_table = 'user'
+        db_table = 'User'
 
 
 class Pet(models.Model):
@@ -77,6 +80,9 @@ class Pet(models.Model):
     def __str__(self):
         return f'{self.pet_name} ({self.breed})'
 
+    class Meta:
+        db_table = 'Pet'
+
 
 class CalendarEvent(models.Model):
     pet = models.ForeignKey(Pet, related_name='calendar_events', on_delete=models.CASCADE)
@@ -89,6 +95,9 @@ class CalendarEvent(models.Model):
     def __str__(self):
         return f'{self.event_title} on {self.start_date}'
 
+    class Meta:
+        db_table = 'CalendarEvent'
+
 
 class JournalEntry(models.Model):
     pet = models.ForeignKey(Pet, related_name='journal_entries', on_delete=models.CASCADE)
@@ -98,6 +107,9 @@ class JournalEntry(models.Model):
 
     def __str__(self):
         return self.entry_title
+
+    class Meta:
+        db_table = 'JournalEntry'
 
 
 class ForumPost(models.Model):
@@ -109,6 +121,9 @@ class ForumPost(models.Model):
     def __str__(self):
         return f'Post #{self.id} by {self.user.full_name}'
 
+    class Meta:
+        db_table = 'ForumPost'
+
 
 class ForumComment(models.Model):
     forum_post = models.ForeignKey(ForumPost, related_name='comments', on_delete=models.CASCADE)
@@ -116,8 +131,12 @@ class ForumComment(models.Model):
     comment_text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+
     def __str__(self):
         return f'Comment #{self.id} by {self.user.full_name}'
+
+    class Meta:
+        db_table = 'ForumComment'
 
 
 class ForumLike(models.Model):
@@ -126,3 +145,6 @@ class ForumLike(models.Model):
 
     def __str__(self):
         return f'Like #{self.id} by {self.user.full_name}'
+
+    class Meta:
+        db_table = 'ForumLike'
