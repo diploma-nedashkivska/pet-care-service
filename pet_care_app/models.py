@@ -17,11 +17,17 @@ TYPE_CHOICES = (
     ('OTHER', 'Інше'),
 )
 
+PARTNER_TYPES = [
+    ('CLINIC', 'Ветеринарна клініка'),
+    ('GROOMING_SALON', 'Грумінг-салон'),
+    ('PET_STORE', 'Зоомагазин'),
+]
 
 class SitePartner(models.Model):
     site_url = models.URLField(max_length=255)
     site_name = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
+    partner_type = models.CharField(max_length=20, choices=PARTNER_TYPES, default='PET_STORE')
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     photo_url = models.URLField(max_length=255, blank=True, null=True)
 
     def __str__(self):
