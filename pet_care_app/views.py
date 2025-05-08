@@ -272,6 +272,13 @@ class ForumPostView(APIView):
         serializer.save(user=request.user)
         return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
 
+    def delete(self, request, post_id):
+        post = get_object_or_404(ForumPost, pk=post_id)
+        if post.user != request.user:
+            return JsonResponse({'detail': 'Нема прав'}, status=403)
+        post.delete()
+        return JsonResponse({}, status=204)
+
 
 class ForumCommentView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
