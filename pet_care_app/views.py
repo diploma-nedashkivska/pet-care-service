@@ -12,6 +12,7 @@ from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveUpdateAPIView
 from django.shortcuts import get_object_or_404
+from django.db.models import Count
 
 
 class MyRefreshToken(RefreshToken):
@@ -253,3 +254,53 @@ class SitePartnerListView(generics.ListAPIView):
     queryset = SitePartner.objects.all()
     serializer_class = SitePartnerSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class ForumPostView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        posts = ForumPost.objects.all().order_by('-created_at')
+        serializer = ForumPostSerializer(
+            posts, many=True, context={'request': request}
+        )
+        return JsonResponse(serializer.data, safe=False)
+
+    def post(self, request):
+        serializer = ForumPostSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ForumCommentView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get(self, request, post_id):
+        comments = ForumComment.objects.filter(forum_post_id=post_id).order_by('created_at')
+        serializer = ForumCommentSerializer(comments, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+    def post(self, request, post_id):
+        post = get_object_or_404(ForumPost, pk=post_id)
+        serializer = ForumCommentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user, forum_post=post)
+        return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ForumLikeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, post_id):
+        post = get_object_or_404(ForumPost, pk=post_id)
+        like, created = ForumLike.objects.get_or_create(user=request.user, forum_post=post)
+        if not created:
+            like.delete()
+            liked = False
+        else:
+            liked = True
+        return JsonResponse({
+            'liked': liked,
+            'likes_count': post.likes.count()
+        })

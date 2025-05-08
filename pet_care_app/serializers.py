@@ -115,3 +115,32 @@ class SitePartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = SitePartner
         fields = ['id', 'site_name', 'site_url', 'partner_type', 'rating', 'photo_url']
+
+
+class ForumCommentSerializer(serializers.ModelSerializer):
+    user_full = serializers.ReadOnlyField(source='user.full_name')
+
+    class Meta:
+        model = ForumComment
+        fields = ['id', 'user_full', 'comment_text', 'created_at']
+
+
+class ForumPostSerializer(serializers.ModelSerializer):
+    user_full = serializers.ReadOnlyField(source='user.full_name')
+    likes_count = serializers.SerializerMethodField()
+    has_liked = serializers.SerializerMethodField()
+    comments = ForumCommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ForumPost
+        fields = [
+            'id', 'user_full', 'post_text', 'photo_url', 'created_at',
+            'likes_count', 'has_liked', 'comments'
+        ]
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_has_liked(self, obj):
+        user = self.context['request'].user
+        return user.is_authenticated and obj.likes.filter(user=user).exists()
