@@ -247,3 +247,9 @@ class JournalEntryDetailView(APIView):
         entry = get_object_or_404(JournalEntry, pk=pk, pet__user=request.user)
         entry.delete()
         return JsonResponse({}, status=status.HTTP_204_NO_CONTENT)
+
+
+class SitePartnerListView(generics.ListAPIView):
+    queryset = SitePartner.objects.all()
+    serializer_class = SitePartnerSerializer
+    permission_classes = [permissions.IsAuthenticated]

@@ -109,3 +109,9 @@ class JournalEntrySerializer(serializers.ModelSerializer):
         model = JournalEntry
         fields = ['id', 'pet', 'entry_type', 'entry_title', 'created_at', 'description']
         read_only_fields = ['id', 'created_at']
+
+
+class SitePartnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SitePartner
+        fields = ['id', 'site_name', 'site_url', 'partner_type', 'rating', 'photo_url']
