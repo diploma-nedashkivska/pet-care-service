@@ -23,6 +23,7 @@ PARTNER_TYPES = [
     ('PET_STORE', 'Зоомагазин'),
 ]
 
+
 class SitePartner(models.Model):
     site_url = models.URLField(max_length=255)
     site_name = models.CharField(max_length=255)
@@ -83,6 +84,23 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = 'User'
+
+
+class PartnerWatchlist(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='partner_watchlist',
+        on_delete=models.CASCADE
+    )
+    partner = models.ForeignKey(
+        SitePartner,
+        related_name='in_watchlists',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = ('user', 'partner')
+        db_table = 'SitePartnerWatchlist'
 
 
 class Pet(models.Model):

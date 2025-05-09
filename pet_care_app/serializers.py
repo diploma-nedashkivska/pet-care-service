@@ -169,7 +169,7 @@ class ForumPostSerializer(serializers.ModelSerializer):
         if photo:
             post.photo_url = self._upload_to_s3(photo.file, f"forum_posts/post_{post.id}")
             post.save()
-            return post
+        return post
 
     def get_likes_count(self, obj):
         return obj.likes.count()
@@ -177,3 +177,11 @@ class ForumPostSerializer(serializers.ModelSerializer):
     def get_has_liked(self, obj):
         user = self.context['request'].user
         return user.is_authenticated and obj.likes.filter(user=user).exists()
+
+
+class PartnerWatchlistSerializer(serializers.ModelSerializer):
+    partner_id = serializers.IntegerField(source='partner.id')
+
+    class Meta:
+        model = PartnerWatchlist
+        fields = ('partner_id',)

@@ -312,3 +312,42 @@ class ForumLikeView(APIView):
             'liked': liked,
             'likes_count': post.likes.count()
         })
+
+
+class PartnerWatchlistListView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request):
+        partner_ids = request.user.partner_watchlist.values_list('partner__id', flat=True)
+        return JsonResponse({
+            "payloadType": "PartnerWatchlistListDto",
+            "payload": list(partner_ids)
+        }, status=status.HTTP_200_OK)
+
+
+class PartnerWatchlistDetailView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def post(self, request, partner_id):
+        partner = get_object_or_404(SitePartner, pk=partner_id)
+        watch_entry, created = PartnerWatchlist.objects.get_or_create(
+            user=request.user, partner=partner
+        )
+        # за потреби можна повернути created чи серіалізатор
+        return JsonResponse({
+            "payloadType": "PartnerWatchlistDto",
+            "payload": {"partner_id": partner_id}
+        }, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, partner_id):
+        entry = get_object_or_404(
+            PartnerWatchlist,
+            user=request.user,
+            partner__id=partner_id
+        )
+        entry.delete()
+        return JsonResponse({}, status=status.HTTP_204_NO_CONTENT)
