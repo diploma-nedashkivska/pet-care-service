@@ -127,6 +127,7 @@ class ForumCommentSerializer(serializers.ModelSerializer):
 
 class ForumPostSerializer(serializers.ModelSerializer):
     user_full = serializers.ReadOnlyField(source='user.full_name')
+    user_photo = serializers.ReadOnlyField(source='user.photo_url')
     likes_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
     comments = ForumCommentSerializer(many=True, read_only=True)
@@ -134,7 +135,7 @@ class ForumPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = ForumPost
         fields = [
-            'id', 'user_full', 'post_text', 'photo_url', 'created_at',
+            'id', 'user_full', 'user_photo', 'post_text', 'photo_url', 'created_at',
             'likes_count', 'has_liked', 'comments'
         ]
 
