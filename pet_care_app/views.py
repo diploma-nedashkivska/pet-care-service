@@ -258,6 +258,7 @@ class SitePartnerListView(generics.ListAPIView):
 
 class ForumPostView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
         posts = ForumPost.objects.all().order_by('-created_at')

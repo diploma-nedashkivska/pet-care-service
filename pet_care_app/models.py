@@ -132,7 +132,7 @@ class JournalEntry(models.Model):
 
 class ForumPost(models.Model):
     user = models.ForeignKey(User, related_name='forum_posts', on_delete=models.CASCADE)
-    post_text = models.TextField()
+    post_text = models.TextField(blank=True, null=True)
     photo_url = models.URLField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

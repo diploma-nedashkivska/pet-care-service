@@ -131,13 +131,45 @@ class ForumPostSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
     comments = ForumCommentSerializer(many=True, read_only=True)
+    post_text = serializers.CharField(allow_blank=True, required=False)
+    photo = serializers.ImageField(write_only=True, required=False)
 
     class Meta:
         model = ForumPost
         fields = [
-            'id', 'user_full', 'user_photo', 'post_text', 'photo_url', 'created_at',
+            'id', 'user_full', 'user_photo', 'post_text', 'post_text', 'photo_url', 'photo', 'created_at',
             'likes_count', 'has_liked', 'comments'
         ]
+
+    def _upload_to_s3(self, file_obj, prefix: str):
+        client = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME
+        )
+        key = f"{prefix}/image_{uuid.uuid4().hex}"
+        client.upload_fileobj(file_obj, settings.AWS_STORAGE_BUCKET_NAME, key)
+        return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{key}"
+
+    def validate(self, attrs):
+        text = attrs.get('post_text', '').strip()
+        photo = attrs.get('photo', None)
+
+        if not text and not photo:
+            raise serializers.ValidationError(
+                "Потрібно вказати текст або завантажити фото."
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        photo = validated_data.pop('photo', None)
+        post = super().create(validated_data)
+        if photo:
+            post.photo_url = self._upload_to_s3(photo.file, f"forum_posts/post_{post.id}")
+            post.save()
+            return post
 
     def get_likes_count(self, obj):
         return obj.likes.count()
