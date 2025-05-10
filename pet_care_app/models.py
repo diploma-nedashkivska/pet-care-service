@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.core.exceptions import ValidationError
+from datetime import date
+from django.db.models import Q
 
 SEX_CHOICES = (
     ('MALE', 'Чоловіча'),
@@ -22,6 +25,17 @@ PARTNER_TYPES = [
     ('GROOMING_SALON', 'Грумінг-салон'),
     ('PET_STORE', 'Зоомагазин'),
 ]
+
+
+def validate_birthday(value):
+    if value > date.today():
+        raise ValidationError(
+            'Дата народження не може бути в майбутньому.'
+        )
+    if value.year < 1950:
+        raise ValidationError(
+            'Рік народження не може бути раніше 1950-го.'
+        )
 
 
 class SitePartner(models.Model):
@@ -108,7 +122,7 @@ class Pet(models.Model):
     pet_name = models.CharField(max_length=255)
     breed = models.CharField(max_length=255)
     sex = models.CharField(max_length=8, choices=SEX_CHOICES, default='FEMALE')
-    birthday = models.DateField()
+    birthday = models.DateField(validators=[validate_birthday])
     photo_url = models.URLField(max_length=255, blank=True, null=True)
 
     def __str__(self):

@@ -152,16 +152,6 @@ class ForumPostSerializer(serializers.ModelSerializer):
         client.upload_fileobj(file_obj, settings.AWS_STORAGE_BUCKET_NAME, key)
         return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{key}"
 
-    def validate(self, attrs):
-        text = attrs.get('post_text', '').strip()
-        photo = attrs.get('photo', None)
-
-        if not text and not photo:
-            raise serializers.ValidationError(
-                "Потрібно вказати текст або завантажити фото."
-            )
-
-        return attrs
 
     def create(self, validated_data):
         photo = validated_data.pop('photo', None)
