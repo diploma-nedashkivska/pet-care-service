@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.core.exceptions import ValidationError
 from datetime import date
-from django.db.models import Q
 
 SEX_CHOICES = (
     ('MALE', 'Чоловіча'),
@@ -30,11 +29,11 @@ PARTNER_TYPES = [
 def validate_birthday(value):
     if value > date.today():
         raise ValidationError(
-            'Дата народження не може бути в майбутньому.'
+            'The date of birthday can not be in the future!'
         )
     if value.year < 1950:
         raise ValidationError(
-            'Рік народження не може бути раніше 1950-го.'
+            'Year of birthday can not be earlier than 1950!'
         )
 
 
@@ -49,15 +48,15 @@ class SitePartner(models.Model):
         return self.site_name
 
     class Meta:
-        db_table = 'SitePartner'
+        db_table = 'Partner_sites'
 
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, full_name=None, **extra_fields):
         if not email:
-            raise ValueError("Електронна пошта обов'язкова")
+            raise ValueError("Email is required!")
         if not full_name:
-            raise ValueError("Повне ім’я обов'язкове")
+            raise ValueError("Full name is required!")
         email = self.normalize_email(email)
         user = self.model(email=email, full_name=full_name, **extra_fields)
         user.set_password(password)
@@ -69,7 +68,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
 
         if not full_name:
-            raise ValueError("Суперкористувач повинен мати full_name")
+            raise ValueError("Superuser must have full_name")
 
         return self.create_user(
             email=email,
@@ -83,7 +82,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     full_name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
     photo_url = models.URLField(max_length=255, blank=True, null=True)
-    # password = models.TextField()
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -97,7 +95,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.full_name or self.email
 
     class Meta:
-        db_table = 'User'
+        db_table = 'Users'
 
 
 class PartnerWatchlist(models.Model):
@@ -114,7 +112,7 @@ class PartnerWatchlist(models.Model):
 
     class Meta:
         unique_together = ('user', 'partner')
-        db_table = 'SitePartnerWatchlist'
+        db_table = 'Watchlists'
 
 
 class Pet(models.Model):
@@ -129,14 +127,14 @@ class Pet(models.Model):
         return f'{self.pet_name} ({self.breed})'
 
     class Meta:
-        db_table = 'Pet'
+        db_table = 'Pets'
 
 
 class CalendarEvent(models.Model):
     pet = models.ForeignKey(Pet, related_name='calendar_events', on_delete=models.CASCADE)
     event_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='OTHER')
     event_title = models.CharField(max_length=255)
-    start_date = models.DateField(default=timezone.now)
+    start_date = models.DateField(default=timezone.now, blank=True, null=True)
     start_time = models.TimeField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     completed = models.BooleanField(default=False)
@@ -145,7 +143,7 @@ class CalendarEvent(models.Model):
         return f'{self.event_title} on {self.start_date}'
 
     class Meta:
-        db_table = 'CalendarEvent'
+        db_table = 'Calendar_events'
 
 
 class JournalEntry(models.Model):
@@ -159,7 +157,7 @@ class JournalEntry(models.Model):
         return self.entry_title
 
     class Meta:
-        db_table = 'JournalEntry'
+        db_table = 'Journal_entries'
 
 
 class ForumPost(models.Model):
@@ -172,7 +170,7 @@ class ForumPost(models.Model):
         return f'Post #{self.id} by {self.user.full_name}'
 
     class Meta:
-        db_table = 'ForumPost'
+        db_table = 'Forum_posts'
 
 
 class ForumComment(models.Model):
@@ -185,7 +183,7 @@ class ForumComment(models.Model):
         return f'Comment #{self.id} by {self.user.full_name}'
 
     class Meta:
-        db_table = 'ForumComment'
+        db_table = 'Forum_comments'
 
 
 class ForumLike(models.Model):
@@ -196,4 +194,4 @@ class ForumLike(models.Model):
         return f'Like #{self.id} by {self.user.full_name}'
 
     class Meta:
-        db_table = 'ForumLike'
+        db_table = 'Forum_likes'

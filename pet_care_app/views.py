@@ -1,18 +1,15 @@
 from django.http import JsonResponse
 from django.contrib.auth.hashers import check_password
-from .models import *
 from .serializers import *
-from rest_framework import status, viewsets, permissions, generics
+from rest_framework import status, permissions, generics
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny
-from rest_framework.authentication import get_authorization_header
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveUpdateAPIView
 from django.shortcuts import get_object_or_404
-from django.db.models import Count
 
 
 class MyRefreshToken(RefreshToken):
@@ -334,10 +331,9 @@ class PartnerWatchlistDetailView(APIView):
 
     def post(self, request, partner_id):
         partner = get_object_or_404(SitePartner, pk=partner_id)
-        watch_entry, created = PartnerWatchlist.objects.get_or_create(
+        PartnerWatchlist.objects.get_or_create(
             user=request.user, partner=partner
         )
-        # за потреби можна повернути created чи серіалізатор
         return JsonResponse({
             "payloadType": "PartnerWatchlistDto",
             "payload": {"partner_id": partner_id}

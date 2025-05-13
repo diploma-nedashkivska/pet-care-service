@@ -43,7 +43,6 @@ class SignUpSerializer(serializers.Serializer):
                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                 region_name=settings.AWS_S3_REGION_NAME
             )
-            # key = f"user_profile/{uuid.uuid4().hex}.jpg"
             key = f"user_profile/image_{user.id}_{uuid.uuid4().hex}.jpg"
             s3.upload_fileobj(
                 photo.file,
@@ -151,7 +150,6 @@ class ForumPostSerializer(serializers.ModelSerializer):
         key = f"{prefix}/image_{uuid.uuid4().hex}"
         client.upload_fileobj(file_obj, settings.AWS_STORAGE_BUCKET_NAME, key)
         return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{key}"
-
 
     def create(self, validated_data):
         photo = validated_data.pop('photo', None)
