@@ -112,7 +112,7 @@ class PartnerWatchlist(models.Model):
 
     class Meta:
         unique_together = ('user', 'partner')
-        db_table = 'Watchlists'
+        db_table = 'Watchlist_entries'
 
 
 class Pet(models.Model):
