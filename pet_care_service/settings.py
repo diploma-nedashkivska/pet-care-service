@@ -34,6 +34,11 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Для CSRF-перевірки надаємо список довірених Origin:
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+
+# І нагадуємо CORS_ALLOWED_ORIGINS для AJAX-запитів з фронтенду
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
 # Application definition
 
 INSTALLED_APPS = [
