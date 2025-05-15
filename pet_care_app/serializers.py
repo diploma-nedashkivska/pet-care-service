@@ -1,5 +1,6 @@
 import uuid
 import boto3
+from botocore.config import Config
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -41,7 +42,8 @@ class SignUpSerializer(serializers.Serializer):
                 "s3",
                 aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=settings.AWS_S3_REGION_NAME
+                region_name=settings.AWS_S3_REGION_NAME,
+                config=Config(s3={'use_accelerate_endpoint': True})
             )
             key = f"user_profile/image_{user.id}_{uuid.uuid4().hex}.jpg"
             s3.upload_fileobj(
@@ -75,7 +77,7 @@ class PetSerializer(serializers.ModelSerializer):
         )
         key = f"{prefix}/image_{uuid.uuid4().hex}"
         client.upload_fileobj(file_obj, settings.AWS_STORAGE_BUCKET_NAME, key)
-        return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{key}"
+        return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3-accelerate.amazonaws.com/{key}"
 
     def create(self, validated_data):
         photo = validated_data.pop('photo', None)
@@ -145,11 +147,12 @@ class ForumPostSerializer(serializers.ModelSerializer):
             's3',
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_S3_REGION_NAME
+            region_name=settings.AWS_S3_REGION_NAME,
+            config=Config(s3={'use_accelerate_endpoint': True})
         )
         key = f"{prefix}/image_{uuid.uuid4().hex}"
         client.upload_fileobj(file_obj, settings.AWS_STORAGE_BUCKET_NAME, key)
-        return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{key}"
+        return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3-accelerate.amazonaws.com/{key}"
 
     def create(self, validated_data):
         photo = validated_data.pop('photo', None)
