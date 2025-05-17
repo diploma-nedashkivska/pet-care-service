@@ -10,6 +10,8 @@ from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveUpdateAPIView
 from django.shortcuts import get_object_or_404
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.settings import api_settings
 
 
 class MyRefreshToken(RefreshToken):
@@ -21,6 +23,29 @@ class MyRefreshToken(RefreshToken):
             'fullname': user.full_name
         }
         return token
+
+
+class CookieTokenRefreshView(TokenRefreshView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        refresh = request.COOKIES.get('refresh_token')
+        if refresh:
+            request.data['refresh'] = refresh
+
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == 200 and 'refresh' in response.data:
+            response.set_cookie(
+                'refresh_token',
+                response.data['refresh'],
+                httponly=True,
+                secure=False,
+                samesite='Strict',
+                max_age=int(api_settings.REFRESH_TOKEN_LIFETIME.total_seconds())
+            )
+        return response
 
 
 class SignInView(APIView):
@@ -47,15 +72,20 @@ class SignInView(APIView):
         refresh = MyRefreshToken.for_user(user)
         access_token = str(refresh.access_token)
 
-        return JsonResponse(
-            {
-                "payloadType": "LoginResponseDto",
-                "payload": {
-                    "accessToken": access_token
-                }
-            },
-            status=status.HTTP_200_OK
+        response = JsonResponse({
+            "payloadType": "LoginResponseDto",
+            "payload": {"accessToken": access_token}
+        }, status=status.HTTP_200_OK)
+
+        response.set_cookie(
+            key="refresh_token",
+            value=str(refresh),
+            httponly=True,
+            secure=False,
+            samesite="Strict",
+            max_age=24 * 3600
         )
+        return response
 
 
 class SignUpView(APIView):
@@ -68,17 +98,31 @@ class SignUpView(APIView):
         user = serializer.save()
 
         refresh = MyRefreshToken.for_user(user)
-        access = refresh.access_token
+        access_token = str(refresh.access_token)
 
-        return JsonResponse(
-            {
-                "payloadType": "RegistrationResponseDto",
-                "payload": {
-                    "accessToken": str(access),
-                }
-            },
-            status=status.HTTP_201_CREATED
+        response = JsonResponse({
+            "payloadType": "RegistrationResponseDto",
+            "payload": {"accessToken": access_token}
+        }, status=status.HTTP_201_CREATED)
+
+        response.set_cookie(
+            key="refresh_token",
+            value=str(refresh),
+            httponly=True,
+            secure=False,
+            samesite="Strict",
+            max_age=24 * 3600
         )
+        return response
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        resp = JsonResponse({}, status=204)
+        resp.delete_cookie('refresh_token')
+        return resp
 
 
 class UserProfileView(RetrieveUpdateAPIView):

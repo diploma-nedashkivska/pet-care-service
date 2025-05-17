@@ -23,7 +23,7 @@ from pet_care_app.views import (SignInView, SignUpView, PetListCreateView, PetDe
                                 UserProfileView, CalendarEventListCreateView, CalendarEventDetailView,
                                 JournalEntryListCreateView, JournalEntryDetailView, SitePartnerListView,
                                 ForumPostView, ForumCommentView, ForumLikeView, PartnerWatchlistListView,
-                                PartnerWatchlistDetailView)
+                                PartnerWatchlistDetailView, CookieTokenRefreshView, LogoutView)
 
 # router = routers.DefaultRouter()
 # router.register(r'users', views.UserView, 'user')
@@ -47,6 +47,7 @@ urlpatterns = [
     path('forum/<int:post_id>/', ForumPostView.as_view(), name='forum-detail'),  # <-- сюди
     path('forum/<int:post_id>/comments/', ForumCommentView.as_view(), name='forum-comments'),
     path('forum/<int:post_id>/like/', ForumLikeView.as_view(), name='forum-like'),
-    path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
+    path('api/token/refresh/', CookieTokenRefreshView.as_view(), name="token_refresh"),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
 
 ]
