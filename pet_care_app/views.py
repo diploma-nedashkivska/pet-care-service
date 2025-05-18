@@ -59,13 +59,13 @@ class SignInView(APIView):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             return JsonResponse(
-                {"error": "Неправильний email або пароль"},
+                {"error": "Invalid email or password"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
         if not check_password(password, user.password):
             return JsonResponse(
-                {"error": "Неправильний email або пароль"},
+                {"error": "Invalid email or password"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
